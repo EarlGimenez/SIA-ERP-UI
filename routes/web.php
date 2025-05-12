@@ -9,6 +9,32 @@ Route::get('/', function () {
     return redirect()->route('inventory.index');
 });
 
+// In web.php
+Route::get('/test-rename/{old}/{new}', function($old, $new) {
+    try {
+        $result = app()->make(\App\Services\ErpNextService::class)
+            ->renameUOM($old, $new);
+        return response()->json($result);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
+
+// Item Groups
+Route::resource('item-groups', ItemGroupController::class)->except(['show']);
+
+// UOMs
+Route::resource('uoms', UOMController::class)->except(['show']);
+
+// UOM routes
+Route::post('uoms/{uom}/force', [UOMController::class, 'forceDestroy'])
+    ->name('uoms.forceDestroy');
+
+// Item Group routes
+Route::post('item-groups/{group}/force', [ItemGroupController::class, 'forceDestroy'])
+    ->name('item-groups.forceDestroy');
+
 Route::prefix('inventory')->group(function () {
     Route::get('/', [InventoryController::class, 'index'])->name('inventory.index');
     Route::get('create', [InventoryController::class, 'create'])->name('inventory.create');

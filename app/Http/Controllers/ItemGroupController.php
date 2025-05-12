@@ -27,24 +27,79 @@ class ItemGroupController extends Controller
         return view('item-groups.create', compact('uoms'));
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'item_group_name' => 'required|string'
+public function store(Request $request)
+{
+    $request->validate([
+        'item_group_name' => 'required|string|min:2'
+    ]);
+
+    try {
+        $this->erp->createItemGroup([
+            'item_group_name' => $request->item_group_name
         ]);
-
-        // Create the item group without the parent_item_group
-        try {
-            $this->erp->createItemGroup([
-                'item_group_name' => $request->item_group_name, // Only pass the necessary field
-            ]);
-        } catch (\Exception $e) {
-            // Handle exception if there's an error creating the item group
-            return redirect()->route('item-groups.create')->with('error', 'Error creating Item Group: ' . $e->getMessage());
-        }
-
         return redirect()->route('item-groups.index');
+
+    } catch (\Exception $e) {
+        return redirect()->route('item-groups.create')
+            ->with('error', $e->getMessage())
+            ->withInput();
     }
+}
+
+    public function edit($name)
+    {
+        try {
+            $group = $this->erp->getItemGroup($name);
+            $itemGroups = $this->erp->listItemGroups();
+            
+            // Check if item group is in use
+            $itemsUsingGroup = $this->erp->getItemsUsingItemGroup($name);
+            $isProtected = !empty($itemsUsingGroup);
+            
+            return view('item-groups.edit', compact('group', 'itemGroups', 'isProtected'));
+        } catch (\Exception $e) {
+            return redirect()->route('item-groups.index')->with('error', $e->getMessage());
+        }
+    }
+
+
+
+public function update(Request $request, $name)
+{
+    try {
+        $this->erp->renameItemGroup(
+            $request->original_name,
+            $request->item_group_name
+        );
+        return redirect()->route('item-groups.index')->with('success', 'Item Group updated');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', $e->getMessage())->withInput();
+    }
+}
+    public function destroy($name)
+    {
+        try {
+            $response = $this->erp->deleteItemGroup($name);
+            return redirect()->route('item-groups.index')
+                ->with('success', $response['message'] ?? 'Item Group deleted successfully!');
+        } catch (\Exception $e) {
+            return redirect()->route('item-groups.index')
+                ->with('error', $e->getMessage())
+                ->with('protected_group', $name); // Pass the protected group name
+        }
+    }
+public function forceDestroy($name)
+{
+    try {
+        $response = $this->erp->forceDeleteItemGroup($name);
+        return redirect()->route('item-groups.index')
+            ->with('success', 'Item Group and all associated items deleted successfully!');
+    } catch (\Exception $e) {
+        return redirect()->route('item-groups.index')
+            ->with('error', 'Force delete failed: ' . $e->getMessage());
+    }
+}
+
 
 
 }
