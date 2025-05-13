@@ -89,26 +89,30 @@
                                     <textarea id="description" name="description" class="form-control" rows="3">{{ $item['description'] ?? '' }}</textarea>
                                 </div>
                                 
-                                <div class="mb-3">
-                                    <label for="image" class="form-label">Item Image</label>
-                                    <input type="file" id="image" name="image" class="form-control" accept="image/*">
-                                    
-                                    @if(isset($item['image']))
-                                        <div class="mt-3 d-flex align-items-center">
-                                            <div class="me-3">
-                                                <img src="{{ config('services.erpnext.url') }}{{ $item['image'] }}" 
-                                                    alt="Current Image" class="img-thumbnail" style="max-height: 100px;">
-                                            </div>
-                                            <div>
-                                                <p class="mb-1">Current image</p>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="remove_image" name="remove_image">
-                                                    <label class="form-check-label" for="remove_image">Remove image</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
+<div class="mb-3">
+  <label for="image" class="form-label">Item Image</label>
+  <input type="file" id="image" name="image" class="form-control" accept="image/*">
+
+  @if(!empty($item['image']))
+    <div class="mt-3 d-flex align-items-center">
+      <div class="me-3">
+        <img 
+          src="{{ config('services.erpnext.url') }}{{ $item['image'] }}" 
+          alt="Item Image" 
+          class="img-thumbnail" 
+          style="max-height: 100px;"
+          onerror="this.src='/placeholder.jpg'">
+      </div>
+      <div>
+        <p class="mb-1">Current image</p>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="remove_image" name="remove_image">
+          <label class="form-check-label" for="remove_image">Remove image</label>
+        </div>
+      </div>
+    </div>
+  @endif
+</div>
                             </div>
                         </div>
                     </div>

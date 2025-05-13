@@ -35,19 +35,22 @@
         @foreach($items as $item)
         <div class="col-md-6 col-lg-4 mb-4">
             <div class="card h-100 inventory-card">
-                <div class="card-img-container position-relative">
-                    @if(isset($item['image']))
-                        <img src="{{ config('services.erpnext.url') }}{{ $item['image'] }}" class="card-img-top" 
-                            alt="{{ $item['item_name'] }}" style="height: 180px; object-fit: cover;">
-                    @else
-                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
-                            <i class="fas fa-box fa-3x text-muted"></i>
-                        </div>
-                    @endif
-                    <div class="position-absolute top-0 end-0 m-2">
-                        <span class="badge bg-coffee-dark">{{ $item['item_group'] }}</span>
-                    </div>
-                </div>
+<div class="card-img-container position-relative">
+  @if(!empty($item['image']))
+    <img 
+      src="{{ config('services.erpnext.url') }}{{ $item['image'] }}" 
+      class="card-img-top" 
+      alt="{{ $item['item_name'] }}" 
+      style="height: 180px; object-fit: cover;">
+  @else
+    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+      <i class="fas fa-box fa-3x text-muted"></i>
+    </div>
+  @endif
+  <div class="position-absolute top-0 end-0 m-2">
+    <span class="badge bg-coffee-dark">{{ $item['item_group'] }}</span>
+  </div>
+</div>
 
                 <div class="card-body p-4">
                     <h5 class="card-title">{{ $item['item_name'] }}</h5>

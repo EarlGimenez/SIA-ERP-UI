@@ -9,18 +9,6 @@ Route::get('/', function () {
     return redirect()->route('inventory.index');
 });
 
-// In web.php
-Route::get('/test-rename/{old}/{new}', function($old, $new) {
-    try {
-        $result = app()->make(\App\Services\ErpNextService::class)
-            ->renameUOM($old, $new);
-        return response()->json($result);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-});
-
-
 // Item Groups
 Route::resource('item-groups', ItemGroupController::class)->except(['show']);
 
@@ -48,6 +36,11 @@ Route::get('/storage/items/{filename}', function ($filename) {
     $path = storage_path('app/public/items/' . $filename);
     return response()->file($path);
 })->name('item.image');
+
+Route::get('/files/{path}', function ($path) {
+    $url = config('services.erpnext.url') . '/files/' . ltrim($path, '/');
+    return redirect($url);
+})->where('path', '.*');
 
 Route::prefix('uoms')->group(function () {
     Route::get('/', [UOMController::class, 'index'])->name('uoms.index');

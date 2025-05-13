@@ -47,6 +47,7 @@ class InventoryController extends Controller
                 ->withInput();
         }
 
+        
         try {
             $payload = [
                 'item_code' => $request->item_code,
@@ -56,10 +57,12 @@ class InventoryController extends Controller
                 'description' => $request->description
             ];
 
-            if ($request->hasFile('image')) {
-                $imageResponse = $this->erp->uploadImage($request->file('image'));
-                $payload['image'] = $imageResponse['message']['file_url'];
-            }
+        if ($request->hasFile('image')) {
+            $fileUrl = $this->erp->uploadImage($request->file('image'), $request->item_code);
+            $payload['image'] = $fileUrl;  // store relative path
+        }
+
+
 
             $this->erp->createItem($payload);
 
@@ -82,19 +85,25 @@ class InventoryController extends Controller
         return view('inventory.edit', compact('item', 'uoms', 'itemGroups'));
     }
 
-    public function update(Request $request, $id)
-    {
-        $payload = $request->only(['item_name', 'item_group', 'stock_uom', 'description']);
-        
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('public/items');
-            $payload['image'] = str_replace('public/', 'storage/', $imagePath);
-        }
+public function update(Request $request, $id)
+{
+    $payload = $request->only([
+        'item_name', 'item_group', 'stock_uom', 'description'
+    ]);
 
-        $this->erp->updateItem($id, $payload);
-        return redirect()->route('inventory.index');
+    // Remove existing image?
+    if ($request->has('remove_image')) {
+        $payload['image'] = ''; // Clears the image in ERPNext
     }
+    // New upload?
+    elseif ($request->hasFile('image')) {
+        $payload['image'] = $this->erp->uploadImage($request->file('image'), $id);
+    }
+
+    $this->erp->updateItem($id, $payload);
+    return redirect()->route('inventory.index')
+                     ->with('success', 'Item updated successfully!');
+}
 
     public function destroy($id)
     {

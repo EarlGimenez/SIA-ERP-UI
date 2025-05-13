@@ -99,21 +99,29 @@ class ErpNextService
         return $response->successful();
     }
 
-    public function uploadImage($file)
-    {
-        $response = Http::withHeaders($this->authHeaders)
-            ->attach('file', file_get_contents($file->path()), $file->getClientOriginalName())
-            ->post("{$this->baseUrl}/method/upload_file", [
-                'is_private' => 0 // Make the file public
-            ]);
+public function uploadImage($file, string $itemCode): string
+{
+    $response = Http::withHeaders($this->authHeaders)
+        ->attach('file', file_get_contents($file->path()), $file->getClientOriginalName())
+        ->post("{$this->baseUrl}/method/upload_file", [
+            'is_private' => 0,
+            'doctype'    => 'Item',
+            'docname'    => $itemCode
+        ]);
 
-        if ($response->failed()) {
-            throw new \Exception("Failed to upload image: " . $response->body());
-        }
-
-        return $response->json();
+    if ($response->failed()) {
+        throw new \Exception("Image upload failed: " . $response->body());
     }
-    // ──────────────── UOMs ────────────────
+
+    $data = $response->json();
+    $url  = $data['message']['file_url'] ?? null;
+    if (! $url) {
+        throw new \Exception("Image upload failed: no file_url returned");
+    }
+
+    return $url;  // e.g. "/files/your-upload.png"
+}
+// ──────────────── UOMs ────────────────
 
     public function listUOMs(): array
     {
